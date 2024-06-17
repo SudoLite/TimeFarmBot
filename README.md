@@ -5,6 +5,8 @@
 
 > 🇮🇷 README available in Persian [here](README-FA.md)
 
+> Special Thanks [shamhi](https://github.com/shamhi)
+
 ## Functionality
 | Functional                                                     | Supported |
 |----------------------------------------------------------------|:---------:|
@@ -24,7 +26,7 @@
 
 ## Installation
 You can download the [**Repository**](https://github.com/SudoLite/TimeFarmBot) by cloning it to your system and installing the necessary dependencies:
-\`\`\`shell
+```shell
 ~ >>> git clone https://github.com/SudoLite/TimeFarmBot.git
 ~ >>> cd TimeFarmBot
 
@@ -47,14 +49,14 @@ You can download the [**Repository**](https://github.com/SudoLite/TimeFarmBot) b
 ~/TimeFarmBot >>> copy .env-example .env
 ~/TimeFarmBot >>> # Specify your API_ID and API_HASH, the rest is taken by default
 ~/TimeFarmBot >>> python main.py
-\`\`\`
+```
 
 Also, for a quick launch, you can use arguments, for example:
-\`\`\`shell
+```shell
 ~/TimeFarmBot >>> python3 main.py --action (1/2)
 # Or
 ~/TimeFarmBot >>> python3 main.py -a (1/2)
 
 #1 - Create session
 #2 - Run clicker
-\`\`\`
+```

@@ -22,7 +22,7 @@
 
 ## نصب
 می‌توانید [**مخزن**](https://github.com/SudoLite/TimeFarmBot) را با کلون کردن به سیستم خود دانلود کرده و وابستگی‌های لازم را نصب کنید:
-\`\`\`shell
+```shell
 ~ >>> git clone https://github.com/SudoLite/TimeFarmBot.git
 ~ >>> cd TimeFarmBot
 
@@ -45,14 +45,14 @@
 ~/TimeFarmBot >>> copy .env-example .env
 ~/TimeFarmBot >>> # API_ID و API_HASH خود را مشخص کنید، بقیه به طور پیش‌فرض گرفته می‌شوند
 ~/TimeFarmBot >>> python main.py
-\`\`\`
+```
 
 همچنین برای راه‌اندازی سریع می‌توانید از آرگومان‌ها استفاده کنید، به عنوان مثال:
-\`\`\`shell
+```shell
 ~/TimeFarmBot >>> python3 main.py --action (1/2)
 # یا
 ~/TimeFarmBot >>> python3 main.py -a (1/2)
 
 #1 - ایجاد جلسه
 #2 - اجرای کلیکر
-\`\`\`
+```
