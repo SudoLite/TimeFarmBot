@@ -163,10 +163,13 @@ class Claimer:
             response = await http_client.post('https://tg-bot-tap.laborx.io/api/v1/farming/finish', json={})
             response.raise_for_status()
 
+            response_json = await response.json()
+
             if response.status == 200:
                 return {
                     'ok': True,
-                    'code': 200
+                    'code': 200,
+                    'balance': int(response_json['balance'])
                 }
 
         except Exception as error:
