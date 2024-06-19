@@ -13,6 +13,7 @@
 | Multithreading                                                 |     ✅     |
 | Binding a proxy to a session                                   |     ✅     |
 | Auto get all tasks except telegram tasks                       |     ✅     |
+| Auto upgrade level for boost farming                           |     ✅     |
 | Retry request per claim                                        |     ✅     |
 | Support tdata / pyrogram .session / telethon .session          |     ✅     |
 
@@ -22,6 +23,8 @@
 | **API_ID / API_HASH**     | Platform data from which to launch a Telegram session (stock - Android)       |
 | **CLAIM_RETRY**           | Number of tries if **Claim** is unsuccessful _(e.g., 3)_                      |
 | **SLEEP_BETWEEN_CLAIM**   | Delay between **Claim** in minutes _(e.g., 180)_                              |
+| **AUTO_UPGRADE_FARM**     | Should I improve farmer level _(True / False)_                                |
+| **MAX_UPGRADE_LEVEL**     | Maximum level of farmer _(up to 4)_                                          |
 | **USE_PROXY_FROM_FILE**   | Whether to use proxy from the `bot/config/proxies.txt` file (True / False)    |
 
 ## Installation

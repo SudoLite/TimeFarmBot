@@ -67,15 +67,20 @@ class Claimer:
             logger.error(f"{self.session_name} | Unknown error during Authorization: {error}")
             await asyncio.sleep(delay=3)
 
-    async def login(self, http_client: aiohttp.ClientSession, tg_web_data: dict[str]) -> str:
+    async def login(self, http_client: aiohttp.ClientSession, tg_web_data: dict[str]) -> dict[str]:
         try:
             response = await http_client.post(url='https://tg-bot-tap.laborx.io/api/v1/auth/validate-init', data=tg_web_data)
             response.raise_for_status()
 
             response_json = await response.json()
-            access_token = response_json['token']
 
-            return access_token
+            json_data = {
+                'token': response_json['token'],
+                'level': response_json['info']['level'],
+                'levelDescriptions': response_json['levelDescriptions']
+            }
+
+            return json_data
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error while getting Access Token: {error}")
             await asyncio.sleep(delay=3)
@@ -114,6 +119,19 @@ class Claimer:
             return response_json
         except Exception as error:
             logger.error(f"{self.session_name} | Unknown error when getting Task Data: {error}")
+            await asyncio.sleep(delay=3)
+
+    async def upgrade_level(self, http_client: aiohttp.ClientSession) -> dict[str]:
+        try:
+            response = await http_client.post(url=f'https://tg-bot-tap.laborx.io/api/v1/me/level/upgrade', json={})
+            response.raise_for_status()
+
+            response_json = await response.json()
+
+            return response_json
+
+        except Exception as error:
+            logger.error(f"{self.session_name} | Unknown error while Upgrade Level: {error}")
             await asyncio.sleep(delay=3)
 
     async def task_claim(self, http_client: aiohttp.ClientSession, task_id: str) -> str:
@@ -203,10 +221,13 @@ class Claimer:
                 try:
                     if time() - access_token_created_time >= 3600:
                         tg_web_data = await self.get_tg_web_data(proxy=proxy)
-                        access_token = await self.login(http_client=http_client, tg_web_data=tg_web_data)
+                        login_data = await self.login(http_client=http_client, tg_web_data=tg_web_data)
 
-                        http_client.headers["Authorization"] = f"Bearer {access_token}"
-                        headers["Authorization"] = f"Bearer {access_token}"
+                        http_client.headers["Authorization"] = f"Bearer {login_data['token']}"
+                        headers["Authorization"] = f"Bearer {login_data['token']}"
+
+                        level_num = int(login_data['level'])
+                        levelDescriptions = login_data['levelDescriptions']
 
                         access_token_created_time = time()
 
@@ -216,8 +237,6 @@ class Claimer:
                             task_id = task["id"]
                             task_title = task["title"]
                             task_type = task["type"]
-                            if task_type == "TELEGRAM":
-                                continue
                             if "submission" in task.keys():
                                 status = task["submission"]["status"]
                                 if status == "CLAIMED":
@@ -230,6 +249,9 @@ class Claimer:
                                                     f"Task Title: <g>{task_title}</g>")
                                         continue
 
+                            if task_type == "TELEGRAM":
+                                continue
+                                
                             task_data_submiss = await self.task_submiss(http_client=http_client, task_id=task_id)
                             if task_data_submiss != "OK":
                                 #logger.error(f"{self.session_name} | Failed Send Submission Task: {task_title}")
@@ -247,6 +269,7 @@ class Claimer:
                                                     f"Task Title: <g>{task_title}</g>")
                                 continue
 
+                    
                     mining_data = await self.get_mining_data(http_client=http_client)
 
                     balance = int(float(mining_data['balance']))
@@ -258,16 +281,17 @@ class Claimer:
 
                     if int(farmingDurationInSec / 60) != settings.SLEEP_BETWEEN_CLAIM:
                         settings.SLEEP_BETWEEN_CLAIM = int(farmingDurationInSec / 60)
-                    
 
                     logger.info(f"{self.session_name} | Balance: <c>{balance}</c> | "
-                                f"Earning: <e>{available}</e>")
+                                f"Earning: <e>{available}</e> | "
+                                f"Speed: <g>x{(level_num + 1)}</g>")
 
                     if available == False:
                         status_start = await self.start_mine(http_client=http_client)
                         if status_start['ok'] and status_start['code'] == 200:
                             logger.success(f"{self.session_name} | Successful Mine Started | "
-                                    f"Balance: <c>{balance}</c> (<g>Mining</g>)")
+                                    f"Balance: <c>{balance}</c> | "
+                                    f"Speed: Farming (<g>x{(level_num + 1)}</g>)")
 
                     if available:
                         retry = 1
@@ -276,6 +300,7 @@ class Claimer:
                             if status['ok'] and status['code'] == 200:
                                 mining_data = await self.get_mining_data(http_client=http_client)
                                 new_balance = int(float(mining_data['balance']))
+                                balance = new_balance
 
                                 if(new_balance == int(status['balance'])):
                                     status_start = await self.start_mine(http_client=http_client)
@@ -289,6 +314,29 @@ class Claimer:
 
                             logger.info(f"{self.session_name} | Retry <y>{retry}</y> of <e>{settings.CLAIM_RETRY}</e>")
                             retry += 1
+
+                    available = False
+
+                    if (settings.AUTO_UPGRADE_FARM is True and level_num < settings.MAX_UPGRADE_LEVEL): 
+                        next_level = level_num + 1
+                        max_level_bot = len(levelDescriptions) - 1
+                        if next_level <= max_level_bot:
+                            for level_data in levelDescriptions:
+                                lvl_dt_num = int(level_data['level'])
+                                if next_level == lvl_dt_num:
+                                    lvl_price = int(level_data['price'])
+                                    if lvl_price <= balance:
+                                        logger.info(f"{self.session_name} | Sleep 5s before upgrade level farming to {next_level} lvl")
+                                        await asyncio.sleep(delay=5)
+
+                                        out_data = await self.upgrade_level(http_client=http_client)
+                                        if out_data['balance']:
+                                            logger.success(f"{self.session_name} | Level farming upgraded to {next_level} lvl | "
+                                            f"Balance: <c>{out_data['balance']}</c> | "
+                                            f"Speed: <g>x{level_data['farmMultiplicator']}</g>")
+                                            
+                                            await asyncio.sleep(delay=1)
+                                    
 
                 except InvalidSession as error:
                     raise error

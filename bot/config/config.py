@@ -10,6 +10,9 @@ class Settings(BaseSettings):
     CLAIM_RETRY: int = 1
     SLEEP_BETWEEN_CLAIM: int = 240
 
+    AUTO_UPGRADE_FARM: bool = True
+    MAX_UPGRADE_LEVEL: int = 3
+
     USE_PROXY_FROM_FILE: bool = False
 
 
