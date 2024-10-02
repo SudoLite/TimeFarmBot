@@ -276,8 +276,9 @@ class Claimer:
                     farmingReward = int(mining_data['farmingReward'])
                     farmingDurationInSec = int(mining_data['farmingDurationInSec'])
                     
-                    if mining_data['activeFarmingStartedAt'] != None:
-                        available = True
+                    if "activeFarmingStartedAt" in mining_data:
+                        if mining_data['activeFarmingStartedAt'] != None:
+                            available = True
 
                     if int(farmingDurationInSec / 60) != settings.SLEEP_BETWEEN_CLAIM:
                         settings.SLEEP_BETWEEN_CLAIM = int(farmingDurationInSec / 60)
